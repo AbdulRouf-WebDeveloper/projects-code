@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Squares Game</title>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Lato', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+      }
+      .container {
+        max-width: 960px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      #canvas {
+        width: 600px;
+        height: 400px;
+        border: 1px solid black;
+      }
+
+      #visits {
+        color: #494949;
+        text-transform: uppercase;
+        background: #ffffff;
+        padding: 20px;
+        border: 4px solid #494949;
+        margin: 10px;
+        height: 20px;
+        width: 150px;
+      }
+
+      .highScore {
+        color: #494949;
+        text-transform: uppercase;
+        background: #ffffff;
+        padding: 20px;
+        border: 4px solid #494949;
+        margin: 10px;
+        height: 20px;
+        width: 150px;
+      }
+
+      .fill {
+        background-image: url(images/nature.png);
+        position: relative;
+        height: 150px;
+        width: 150px;
+        top: 5px;
+        left: 5px;
+        cursor: pointer;
+      }
+
+      .pic_frame {
+        display: inline-block;
+        height: 160px;
+        width: 160px;
+        margin: 10px;
+        border: 3px #001f3f solid;
+        background-color: #fff;
+        margin: 10px;
+      }
+
+      .hold {
+        border: solid #ccc 4px;
+      }
+
+      .hovered {
+        background: #f4f4f4;
+        border-style: dashed;
+      }
+
+      .invisible {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Try to catch all the small squares, good luck, and have fun!!!</h1>
+      <canvas id="canvas" width="600" height="400" tabindex="1"></canvas>
+      <div id="visits"></div>
+      <div class="highScore">HIGH SCORE:0</div>
+    </div>
+    <script>
+      // for visit counter
+      let visits;
+      // get the highscore class
+      const highScoreBoard = document.querySelector('.highScore');
+      if (localStorage.getItem('visitcount')) {
+        // get the visitcount item, parse it for an integer, put into var.
+        visits = parseInt(localStorage.getItem('visitcount'));
+        // increment var.
+        visits++;
+      }
+      // set a variable.
+      else {
+        visits = 1;
+      }
+
+      // Set to localStorage
+      localStorage.setItem('visitcount', visits);
+      document.getElementById('visits').innerHTML = 'Visits: ' + visits;
+
+      // Get a reference to the canvas DOM element
+      var canvas = document.getElementById('canvas');
+      // Get the canvas bringBacking cx
+      var cx = canvas.getContext('2d');
+
+      // Your score
+      var score = 0;
+
+      // new Highscore
+      let highScore = localStorage.getItem('myHighScore') || 0;
+      highScoreBoard.textContent = 'HIGH SCORE: ' + highScore;
+      // the square
+      var x = 50; // X position
+      var y = 100; // Y position
+      var speed = 6; // Distance to move each frame
+      var sideLength = 50; // Length of each side of the square
+
+      // FLags to track which keys are pressed
+      var down = false;
+      var up = false;
+      var right = false;
+      var left = false;
+
+      // Properties for the target square
+      var targetX = 0;
+      var targetY = 0;
+      var targetLength = 25;
+
+      // Determine if number a is within the range b to c (exclusive)
+      function isWithin(a, b, c) {
+        return a > b && a < c;
+      }
+
+      // Countdown timer (in seconds)
+      var countdown = 35;
+      // ID to track the setTimeout
+      var id = null;
+
+      // Listen for keydown events
+      canvas.addEventListener('keydown', function (event) {
+        event.preventDefault();
+        console.log(event.key, event.keyCode);
+        if (event.keyCode === 40) {
+          // DOWN
+          down = true;
+        }
+        if (event.keyCode === 38) {
+          // UP
+          up = true;
+        }
+        if (event.keyCode === 37) {
+          // LEFT
+          left = true;
+        }
+        if (event.keyCode === 39) {
+          // RIGHT
+          right = true;
+        }
+      });
+
+      // Listen for keyup events
+      canvas.addEventListener('keyup', function (event) {
+        event.preventDefault();
+        console.log(event.key, event.keyCode);
+        if (event.keyCode === 40) {
+          // DOWN
+          down = false;
+        }
+        if (event.keyCode === 38) {
+          // UP
+          up = false;
+        }
+        if (event.keyCode === 37) {
+          // LEFT
+          left = false;
+        }
+        if (event.keyCode === 39) {
+          // RIGHT
+          right = false;
+        }
+      });
+
+      // Show the start mainMenu
+      function mainMenu() {
+        getRid();
+        cx.fillStyle = '#000000';
+        cx.font = '36px Lato';
+        cx.textAlign = 'center';
+        cx.fillText(
+          'Capture the square!!',
+          canvas.width / 2,
+          canvas.height / 4
+        );
+        cx.font = '24px Lato';
+        cx.fillText(
+          'Click anywhere to start',
+          canvas.width / 2,
+          canvas.height / 2
+        );
+        cx.font = '18px Lato';
+        cx.fillText(
+          'Use the arrow keys to move around',
+          canvas.width / 2,
+          (canvas.height / 4) * 3
+        );
+        // Start the game on a click
+        canvas.addEventListener('click', beginGame);
+      }
+
+      // Start the game
+      function beginGame() {
+        // Reduce the countdown timer ever second
+        id = setInterval(function () {
+          countdown--;
+        }, 1000);
+        // Stop listening for click events
+        canvas.removeEventListener('click', beginGame);
+        // Put the target at a random starting point
+        moveTarget();
+        // Kick off the bringBack loop
+        bringBack();
+      }
+
+      // Show the game over screen
+      function endGame() {
+        // Stop the countdown
+        clearInterval(id);
+        // Display the final score
+        getRid();
+        cx.fillStyle = '#000000';
+        cx.font = '24px Lato';
+        cx.textAlign = 'center';
+        cx.fillText(
+          'Your Score: ' + score,
+          canvas.width / 2,
+          canvas.height / 2
+        );
+      }
+
+      // Move the target square to a random position
+      function moveTarget() {
+        targetX = Math.round(Math.random() * canvas.width - targetLength);
+        targetY = Math.round(Math.random() * canvas.height - targetLength);
+      }
+
+      // Clear the canvas
+      function getRid() {
+        cx.fillStyle = '#FFFFFF';
+        cx.fillRect(0, 0, 600, 400);
+      }
+
+      // The main bringBack loop
+      function bringBack() {
+        getRid();
+        // Move the square
+        if (down) {
+          y += speed;
+        }
+        if (up) {
+          y -= speed;
+        }
+        if (right) {
+          x += speed;
+        }
+        if (left) {
+          x -= speed;
+        }
+        // Keep the square within the bounds
+        if (y + sideLength > canvas.height) {
+          y = canvas.height - sideLength;
+        }
+        if (y < 0) {
+          y = 0;
+        }
+        if (x < 0) {
+          x = 0;
+        }
+        if (x + sideLength > canvas.width) {
+          x = canvas.width - sideLength;
+        }
+        // Collide with the target
+        if (
+          isWithin(targetX, x, x + sideLength) ||
+          isWithin(targetX + targetLength, x, x + sideLength)
+        ) {
+          // X
+          if (
+            isWithin(targetY, y, y + sideLength) ||
+            isWithin(targetY + targetLength, y, y + sideLength)
+          ) {
+            // Y
+            // Respawn the target
+            moveTarget();
+            // Increase the score
+            score++;
+          }
+        }
+        // bringBack the square
+        cx.fillStyle = '#001f3f';
+        cx.fillRect(x, y, sideLength, sideLength);
+        // bringBack the target
+        cx.fillStyle = '#3D9970';
+        cx.fillRect(targetX, targetY, targetLength, targetLength);
+        // bringBack the score and time remaining
+        cx.fillStyle = '#000000';
+        cx.font = '24px Lato';
+        cx.textAlign = 'left';
+        cx.fillText('Score: ' + score, 10, 24);
+        cx.fillText('Time Remaining: ' + countdown, 10, 50);
+        // End the game or keep playing
+        if (countdown <= 0) {
+          endGame();
+          checkHighScore();
+        } else {
+          window.requestAnimationFrame(bringBack);
+        }
+      }
+
+      // Start the game
+      mainMenu();
+      canvas.focus();
+
+      function checkHighScore() {
+        if (score > localStorage.getItem('myHighScore')) {
+          localStorage.setItem('myHighScore', score);
+          highScore = score;
+          highScoreBoard.textContent = 'HIGH SCORE: ' + highScore;
+        }
+      }
+
+      // get the classes with querySelector
+      let fill = document.querySelector('.fill');
+      let empties = document.querySelectorAll('.pic_frame');
+      //loop thorough the boxes
+      for (let pic_frame of empties) {
+        pic_frame.addEventListener('dragover', dragOver);
+        pic_frame.addEventListener('dragenter', dragEnter);
+        pic_frame.addEventListener('drop', dragDrop);
+      }
+      fill.addEventListener('dragstart', dragStart);
+      fill.addEventListener('dragend', dragEnd);
+
+      // function for holding the img
+      function dragStart() {
+        this.className += ' hold';
+        setTimeout(() => (this.className = 'invisible'), 0);
+      }
+      // once dragged grab the fill class
+      function dragEnd() {
+        this.className = 'fill';
+      }
+      // drag it over
+      function dragOver(e) {
+        e.preventDefault();
+      }
+      // the dashed border appears
+      function dragEnter(e) {
+        e.preventDefault();
+        this.className += ' hovered';
+      }
+
+      // drop the image
+      function dragDrop() {
+        this.className = 'pic_frame';
+        this.append(fill);
+      }
+    </script>
+  </body>
+</html>

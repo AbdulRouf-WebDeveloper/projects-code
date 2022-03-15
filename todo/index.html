@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <title>Todo List</title>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .container {
+        max-width: 960px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      #view {
+        width: 500px;
+        min-height: 400px;
+        border-radius: 8px;
+        border: 6px solid #a3bcb6;
+        background-color: #daded4;
+        box-shadow: 0px 10px 1px #ddd, 0 10px 20px #ccc;
+        padding: 15px;
+        font-size: 1.3em;
+        line-height: 2.6em;
+        color: #3c4030;
+      }
+
+      h1 {
+        margin: 1em 0 0.5em 0;
+        font-weight: 400;
+        text-transform: uppercase;
+        color: #00caa6;
+        font-style: italic;
+        font-family: 'Inter', sans-serif;
+        font-size: 45px;
+        line-height: 54px;
+        text-shadow: 2px 5px 0 rgba(0, 0, 0, 0.2);
+      }
+
+      .btn {
+        background-color: transparent;
+        border: 2px solid #e74c3c;
+        border-radius: 0.6em;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1;
+        margin: 15px;
+        padding: 1.2em 2.8em;
+        text-decoration: none;
+        text-align: center;
+      }
+      .btn:hover,
+      .btn:focus {
+        color: #000;
+        outline: 0;
+      }
+      .third {
+        border-color: #a3bcb6;
+        color: #3c4030;
+        box-shadow: 0 0 40px 40px #a3bcb6 inset, 0 0 0 0 #a3bcb6;
+        transition: all 150ms ease-in-out;
+        transition: all 150ms ease-in-out;
+      }
+      .third:hover {
+        box-shadow: 0 0 10px 0 #a3bcb6 inset, 0 0 10px 4px #a3bcb6;
+      }
+
+      @media only screen and (max-width: 600px) {
+        .container {
+        }
+        #view {
+          width: 300px;
+          min-height: 200px;
+          border-radius: 8px;
+          border: 6px solid #a3bcb6;
+          background-color: #daded4;
+          box-shadow: 0px 10px 1px #ddd, 0 10px 20px #ccc;
+          padding: 15px;
+          font-size: 1em;
+          line-height: 2.6em;
+          color: #3c4030;
+        }
+      }
+    </style>
+
+    <script>
+      // Global variables
+      // a list of todos in a array.
+      var stuff_todo = [
+        'Explore the Canadian Museum for Human Rights.',
+        'Watch Animals at the Assiniboine Park and the Zoo.',
+        'Enjoy Nature at FortWhyte Alive.',
+        'Lumberjax Axe Throwing.',
+      ];
+
+      // a due date for when todos.
+      var when_todo = new Array();
+      when_todo[0] = 'Tomorrow.';
+      when_todo[1] = 'In Two Days.';
+      when_todo[2] = 'Afternoon.';
+      when_todo[3] = 'Tonight.';
+
+      var view_box;
+
+      // Wait until page loads.
+      onload = function () {
+        // page has loaded.
+        view_box = document.getElementById('view');
+        // initially display the arrays in the DIV.
+        display_todo();
+      };
+
+      function addTodo() {
+        // task 1: Ask for name of todo, and when to do it.
+        var new_todo = prompt('Things to do?', '');
+        var new_when_todo = prompt('When do you want to do this?', '');
+
+        // task 2: Check to see if bad input entered.
+        if (
+          new_todo == null ||
+          new_todo == '' ||
+          new_when_todo == null ||
+          new_when_todo == ''
+        ) {
+          alert('Come on, there has gotta be something you can do.');
+          return;
+        } // end IF check for todos info
+
+        // task 3: Add information to both arrays.
+        alert('You have ' + stuff_todo.push(new_todo) + ' things to do.');
+        when_todo.push(new_when_todo);
+        // Show the number of things to do.
+        display_todo();
+      } // end function display_todo()
+
+      function display_todo() {
+        // "Wipe" the div before showing the todos.
+        view_box.innerHTML = '';
+        // Loop through the arrays and show them in the DIV.
+        for (let i = 0; i < stuff_todo.length; i++) {
+          view_box.innerHTML +=
+            i +
+            1 +
+            '. <strong>' +
+            stuff_todo[i] +
+            '</strong>: ' +
+            when_todo[i] +
+            '<br/>';
+        } // end FOR loop
+      } // Ending display_todo function.
+
+      function remove_todo() {
+        // get the number of the todos to delete.
+        var delete_todo = prompt(
+          'Enter the number (0, 1, 2, etc) of the things you want to delete.',
+          ''
+        );
+        //  make sure its a number. Check for null or empty at the same time.
+        delete_todo = parseInt(delete_todo);
+        if (isNaN(delete_todo)) {
+          alert('Your missing a number, beautiful. ');
+          // exit the function
+          return;
+        }
+        // minus 1 from the number so it matches the displayed.
+        delete_todo--;
+        // Is the number greater than the last array index?
+        if (delete_todo > stuff_todo.length - 1 || delete_todo < 0) {
+          alert('Sorry, that number is too large, or zero.');
+          return;
+        }
+
+        //  Remove the array item using splice().
+        var who_got_removed = stuff_todo.splice(delete_todo, 1);
+
+        // Make sure to also remove the due date of the todos from the parallel array.
+        var fired_job = when_todo.splice(delete_todo, 1);
+        // Let the user know what todo was removed.
+        alert('Hope you had fun. You removed, ' + who_got_removed);
+        // task 8: Show the changed band.
+        display_todo();
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Fun things you wanna do!</h1>
+
+      <p>
+        <button class="btn third" onclick="addTodo();">
+          Things i want to do!
+        </button>
+        <button class="btn third" onclick="remove_todo();">
+          Im done with this!
+        </button>
+      </p>
+
+      <div id="view"></div>
+    </div>
+    <script></script>
+  </body>
+</html>

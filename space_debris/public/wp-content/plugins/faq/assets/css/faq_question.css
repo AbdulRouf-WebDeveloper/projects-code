@@ -1,0 +1,26 @@
+/*
+FAQ Question CSS
+*/
+
+div.faq {
+  width: 100%;
+  max-width: 320px;
+  float: left;
+  margin: 10px;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  padding: 5px;
+  overflow: hidden;
+}
+
+div.faq_header {
+  padding: 10px;
+  background: #36454f;
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+div.faq_body {
+  display: none;
+  padding: 10px;
+}
